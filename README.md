@@ -1,2 +1,3 @@
-# optimized-sort-merge-join-rs
-Simple optimized sort-merge join in Rust
+# Simple Optimized Sort Merge Join in RUST
+
+
