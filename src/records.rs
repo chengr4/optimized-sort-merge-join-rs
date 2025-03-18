@@ -2,17 +2,17 @@ use std::io::BufRead;
 
 #[derive(Debug, Default)]
 pub struct EmpRecord {
-    id: i32,
-    name: String,
-    bio: String,
-    manager_id: i32, 
+    pub id: i32,
+    pub name: String,
+    pub bio: String,
+    pub manager_id: i32, 
 }
 
 #[derive(Debug, Default)]
 pub struct DeptRecord {
-    did: i32,
-    dname: String,
-    manager_id: i32, 
+    pub did: i32,
+    pub dname: String,
+    pub manager_id: i32, 
 }
 
 #[derive(Debug, Default)]
