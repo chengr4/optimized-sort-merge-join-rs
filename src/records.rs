@@ -5,14 +5,14 @@ pub struct EmpRecord {
     pub id: i32,
     pub name: String,
     pub bio: String,
-    pub manager_id: i32, 
+    pub manager_id: i32,
 }
 
 #[derive(Debug, Default)]
 pub struct DeptRecord {
     pub did: i32,
     pub dname: String,
-    pub manager_id: i32, 
+    pub manager_id: i32,
 }
 
 #[derive(Debug, Default)]
@@ -22,7 +22,7 @@ pub struct Records {
     pub no_values: i32,
 }
 
-pub fn grab_emp_record<T: BufRead>( empin: &mut T) -> Records {
+pub fn grab_emp_record<T: BufRead>(empin: &mut T) -> Records {
     let mut line = String::new();
     if let Ok(bytes) = empin.read_line(&mut line) {
         if bytes > 0 {
@@ -45,12 +45,11 @@ pub fn grab_emp_record<T: BufRead>( empin: &mut T) -> Records {
         }
     }
     let mut rec = Records::default();
-        rec.no_values = -1;
-        rec
-
+    rec.no_values = -1;
+    rec
 }
 
-pub fn grab_dept_record<T: BufRead>( deptin: &mut T) -> Records {
+pub fn grab_dept_record<T: BufRead>(deptin: &mut T) -> Records {
     let mut line = String::new();
     if let Ok(bytes) = deptin.read_line(&mut line) {
         if bytes > 0 {
@@ -71,6 +70,6 @@ pub fn grab_dept_record<T: BufRead>( deptin: &mut T) -> Records {
         }
     }
     let mut rec = Records::default();
-        rec.no_values = -1;
-        rec
+    rec.no_values = -1;
+    rec
 }
