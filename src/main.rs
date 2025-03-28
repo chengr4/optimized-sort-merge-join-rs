@@ -1,7 +1,7 @@
 use std::{fs::File, io::BufWriter, sync::Mutex};
 use std::io::Write;
 
-use optimized_sort_merge_join_rs::records::{Records, grab_dept_record};
+use optimized_sort_merge_join_rs::records::{grab_dept_record, grab_emp_record, Records};
 
 const BUFFER_SIZE: usize = 500;
 
@@ -17,7 +17,7 @@ static BUFFERS: LazyLock<Mutex<[Records; BUFFER_SIZE]>> =
 
 // Register strategy for sorting and writing
 
-fn sort_buffer(run_name: String, current_run_number: usize, total_pages_to_sort: usize) {
+fn sort_buffer(run_name: &str, current_run_number: usize, total_pages_to_sort: usize) {
     if run_name == "Dept" {
         let mut buffers = BUFFERS.lock().unwrap();
         buffers[..total_pages_to_sort]
@@ -73,7 +73,6 @@ fn main() {
     let mut records_in_current_dept_run = 0;
     let mut number_of_dept_runs = 0;
     let mut dept_reader = std::io::BufReader::new(dept_in);
-
     let mut record = grab_dept_record(&mut dept_reader);
     while record.no_values != -1 {
         {
@@ -84,7 +83,7 @@ fn main() {
         records_in_current_dept_run += 1;
         if records_in_current_dept_run == BUFFER_SIZE {
             sort_buffer(
-                "Dept".to_string(),
+                "Dept",
                 number_of_dept_runs,
                 records_in_current_dept_run,
             );
@@ -97,16 +96,58 @@ fn main() {
 
     if records_in_current_dept_run > 0 {
         sort_buffer(
-            "Dept".to_string(),
+            "Dept",
             number_of_dept_runs,
             records_in_current_dept_run,
         );
         number_of_dept_runs += 1;
     }
 
+    let mut records_in_current_emp_run = 0;
+    let mut number_of_emp_runs = 0;
+    let mut emp_reader = std::io::BufReader::new(emp_in);
+    let mut record = grab_emp_record(&mut emp_reader);
+    while record.no_values != -1 {
+        {
+            let mut buffers = BUFFERS.lock().unwrap();
+            buffers[records_in_current_emp_run] = record;
+        }
+
+        records_in_current_emp_run += 1;
+        if records_in_current_emp_run == BUFFER_SIZE {
+            sort_buffer(
+                "Employee",
+                number_of_emp_runs,
+                records_in_current_emp_run,
+            );
+            records_in_current_emp_run = 0;
+            number_of_emp_runs += 1;
+        }
+
+        record = grab_emp_record(&mut emp_reader);
+    }
+
+    if records_in_current_emp_run > 0 {
+        sort_buffer(
+            "Employee",
+            number_of_emp_runs,
+            records_in_current_emp_run,
+        );
+        number_of_emp_runs += 1;
+    }
+
     // Use merge_join_runs() to join the runs of Dept and Employee relations and generate Join.csv
 
     // Delete the temporary files (runs) after you've joined both
-    
+    // for i in 0..number_of_dept_runs {
+    //     let dept_run_file_name = format!("run_Dept_{}.tmp", i);
+    //     let _ = std::fs::remove_file(&dept_run_file_name);
+    // }
+
+    // for i in 0..emp_run_number {
+    //     let emp_run_file_name = format!("run_Employee_{}.tmp", i);
+    //     let _ = std::fs::remove_file(&emp_run_file_name);
+    // }
+
     // Employee_p2.csv and Dept_p2.csv
 }
