@@ -6,3 +6,9 @@ Based on the template code, a few improvements have been made:
 
 - Follows SOLID object-oriented principles as closely as possible.
 
+## How to tun
+
+```bash
+cargo run
+```
+
