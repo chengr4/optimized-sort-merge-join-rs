@@ -2,6 +2,7 @@ use std::{fs::File, io::BufWriter, sync::Mutex};
 use std::io::Write;
 
 use optimized_sort_merge_join_rs::records::{grab_dept_record, grab_emp_record, Records};
+use optimized_sort_merge_join_rs::strategy::{self, get_strategy};
 
 const BUFFER_SIZE: usize = 500;
 
@@ -18,15 +19,12 @@ static BUFFERS: LazyLock<Mutex<[Records; BUFFER_SIZE]>> =
 // Register strategy for sorting and writing
 
 fn sort_buffer(run_name: &str, current_run_number: usize, total_pages_to_sort: usize) {
-    if run_name == "Dept" {
+    let strategy = get_strategy(run_name);
+
+    // Sort the buffer
+    {
         let mut buffers = BUFFERS.lock().unwrap();
-        buffers[..total_pages_to_sort]
-            .sort_by(|a, b| a.dept_record.manager_id.cmp(&b.dept_record.manager_id));
-    } else if run_name == "Employee" {
-        let mut buffers = BUFFERS.lock().unwrap();
-        buffers[..total_pages_to_sort].sort_by(|a, b| a.emp_record.id.cmp(&b.emp_record.id));
-    } else {
-        panic!("Invalid run name");
+        strategy.sort(&mut buffers[..], total_pages_to_sort);
     }
 
     // Write the sorted buffer into a temporary run file
@@ -38,23 +36,49 @@ fn sort_buffer(run_name: &str, current_run_number: usize, total_pages_to_sort: u
             return;
         }
     };
-
-    if run_name == "Dept" {
-        for i in 0..total_pages_to_sort {
-            let buffers = BUFFERS.lock().unwrap();
-            let d = &buffers[i].dept_record;
-            writeln!(file, "{},{},{}", d.did, d.dname, d.manager_id).ok();
-        }
-    } else if run_name == "Employee" {
-        for i in 0..total_pages_to_sort {
-            let buffers = BUFFERS.lock().unwrap();
-
-            let e = &buffers[i].emp_record;
-            writeln!(file, "{},{},{},{}", e.id, e.name, e.bio, e.manager_id).ok();
-        }
-    } else {
-        panic!("Invalid run name");
+    
+    // Write to file
+    {
+        let buffers = BUFFERS.lock().unwrap();
+        strategy.write(&buffers[..], &mut file, total_pages_to_sort);
     }
+    // if run_name == "Dept" {
+    //     let mut buffers = BUFFERS.lock().unwrap();
+    //     buffers[..total_pages_to_sort]
+    //         .sort_by(|a, b| a.dept_record.manager_id.cmp(&b.dept_record.manager_id));
+    // } else if run_name == "Employee" {
+    //     let mut buffers = BUFFERS.lock().unwrap();
+    //     buffers[..total_pages_to_sort].sort_by(|a, b| a.emp_record.id.cmp(&b.emp_record.id));
+    // } else {
+    //     panic!("Invalid run name");
+    // }
+
+    // // Write the sorted buffer into a temporary run file
+    // let filename = format!("run_{}_{}.tmp", run_name, current_run_number);
+    // let mut file = match File::create(&filename) {
+    //     Ok(f) => BufWriter::new(f),
+    //     Err(_) => {
+    //         eprintln!("Error creating file {}", filename);
+    //         return;
+    //     }
+    // };
+
+    // if run_name == "Dept" {
+    //     for i in 0..total_pages_to_sort {
+    //         let buffers = BUFFERS.lock().unwrap();
+    //         let d = &buffers[i].dept_record;
+    //         writeln!(file, "{},{},{}", d.did, d.dname, d.manager_id).ok();
+    //     }
+    // } else if run_name == "Employee" {
+    //     for i in 0..total_pages_to_sort {
+    //         let buffers = BUFFERS.lock().unwrap();
+
+    //         let e = &buffers[i].emp_record;
+    //         writeln!(file, "{},{},{},{}", e.id, e.name, e.bio, e.manager_id).ok();
+    //     }
+    // } else {
+    //     panic!("Invalid run name");
+    // }
 }
 
 fn print_join() {
