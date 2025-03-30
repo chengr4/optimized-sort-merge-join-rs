@@ -2,17 +2,17 @@ use std::io::BufRead;
 
 #[derive(Debug, Default)]
 pub struct EmpRecord {
-    pub id: i32,
+    pub id: usize,
     pub name: String,
     pub bio: String,
-    pub manager_id: i32,
+    pub manager_id: usize,
 }
 
 #[derive(Debug, Default)]
 pub struct DeptRecord {
-    pub did: i32,
+    pub did: usize,
     pub dname: String,
-    pub manager_id: i32,
+    pub manager_id: usize,
 }
 
 #[derive(Debug, Default)]
@@ -28,10 +28,10 @@ pub fn grab_emp_record<T: BufRead>(empin: &mut T) -> Records {
         if bytes > 0 {
             let parts: Vec<&str> = line.trim_end().split(',').collect();
             if parts.len() == 4 {
-                let id = parts[0].parse::<i32>().unwrap_or_default();
+                let id = parts[0].parse::<usize>().unwrap_or_default();
                 let name = parts[1].to_string();
                 let bio = parts[2].to_string();
-                let manager_id = parts[3].parse::<i32>().unwrap_or_default();
+                let manager_id = parts[3].parse::<usize>().unwrap_or_default();
                 return Records {
                     emp_record: EmpRecord {
                         id,
@@ -55,9 +55,9 @@ pub fn grab_dept_record<T: BufRead>(deptin: &mut T) -> Records {
         if bytes > 0 {
             let parts: Vec<&str> = line.trim_end().split(',').collect();
             if parts.len() == 3 {
-                let did = parts[0].parse::<i32>().unwrap_or_default();
+                let did = parts[0].parse::<usize>().unwrap_or_default();
                 let dname = parts[1].to_string();
-                let manager_id = parts[2].parse::<i32>().unwrap_or_default();
+                let manager_id = parts[2].parse::<usize>().unwrap_or_default();
                 return Records {
                     dept_record: DeptRecord {
                         did,
